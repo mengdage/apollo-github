@@ -1,28 +1,50 @@
-import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { Component } from 'react'
+import './App.css'
+import { Query } from 'react-apollo'
+import gql from 'graphql-tag'
+
+const GET_REPOSITORIES_OF_ORGANIZATION = gql`
+  query GetRepositoriesOfOrganization($login: String!) {
+    organization(login: $login) {
+      repositories(first: 20) {
+        edges {
+          node {
+            id
+            name
+            url
+            viewerHasStarred
+          }
+        }
+      }
+    }
+  }
+`
 
 class App extends Component {
   render() {
+    const queryVariable = {
+      login: 'the-road-to-learn-react'
+    }
+
     return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </header>
-      </div>
-    );
+      <Query query={GET_REPOSITORIES_OF_ORGANIZATION} variables={queryVariable}>
+        {({ data, loading, error }) => {
+          if (error) return 'error'
+          if (loading) return 'loading'
+
+          return (
+            <ul>
+              {data.organization.repositories.edges.map(repo => (
+                <li key={repo.node.id}>
+                  <a href={repo.node.url}>{repo.node.name}</a>
+                </li>
+              ))}
+            </ul>
+          )
+        }}
+      </Query>
+    )
   }
 }
 
-export default App;
+export default App
